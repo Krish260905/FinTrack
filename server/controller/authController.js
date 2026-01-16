@@ -36,7 +36,26 @@ export const signupUser = async (req, res) => {
 
 export const signinUser = async (req, res) => {
     try {   
+        const { email, password } = req.body;
+        const result = await pool.query({
+            text: "SELECT * FROM tbluser WHERE email = $1",
+            values: [email],
+        });
         
+        const user = result.rows[0];
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        const isMatch = await comparePassword(password, user.password);
+        if (!isMatch) {
+            return res.status(401).json({ message: "Invalid email or password." });
+        }
+
+        const token = createJWT(user.id);
+        user.password = undefined;
+        res.status(200).json({ user, token });
+    
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
