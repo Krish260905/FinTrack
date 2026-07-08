@@ -1,0 +1,138 @@
+"use client";
+
+import { useState, useEffect, Suspense } from 'react';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Activity, Mail, Lock, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
+
+function LoginForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+
+  useEffect(() => {
+    if (searchParams.get('registered') === 'true') {
+      setSuccessMsg('Account created successfully. Please log in.');
+    }
+  }, [searchParams]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccessMsg('');
+
+    try {
+      const res = await fetch('/api/auth/signin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Invalid credentials');
+      }
+
+      localStorage.setItem('fintrack_token', data.token);
+      localStorage.setItem('fintrack_user', JSON.stringify(data.user));
+      
+      window.location.href = '/dashboard';
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <div className="text-center space-y-2">
+        <h1 className="text-3xl font-bold text-slate-800">Welcome back</h1>
+        <p className="text-slate-500">Log in to manage your finances</p>
+      </div>
+
+      {successMsg && (
+        <div className="p-4 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-600 text-sm flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4" /> {successMsg}
+        </div>
+      )}
+
+      {error && (
+        <div className="p-4 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm text-center">
+          {error}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-slate-700">Email</label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
+            <input 
+              type="email" 
+              required
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#5c6cf1] focus:ring-1 focus:ring-[#5c6cf1] text-slate-800 placeholder-slate-400"
+              placeholder="name@example.com"
+              value={formData.email}
+              onChange={(e) => setFormData({...formData, email: e.target.value})}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium text-slate-700">Password</label>
+            <Link href="#" className="text-xs text-[#5c6cf1] hover:underline">Forgot password?</Link>
+          </div>
+          <div className="relative">
+            <Lock className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
+            <input 
+              type="password" 
+              required
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#5c6cf1] focus:ring-1 focus:ring-[#5c6cf1] text-slate-800 placeholder-slate-400"
+              placeholder="••••••••"
+              value={formData.password}
+              onChange={(e) => setFormData({...formData, password: e.target.value})}
+            />
+          </div>
+        </div>
+
+        <button type="submit" disabled={loading} className="w-full bg-[#5c6cf1] hover:bg-[#4f5ee3] text-white font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 mt-4">
+          {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Log In'}
+          {!loading && <ArrowRight className="h-4 w-4" />}
+        </button>
+      </form>
+
+      <p className="text-center text-sm text-slate-500">
+        Don't have an account?{' '}
+        <Link href="/signup" className="text-[#5c6cf1] font-medium hover:underline">
+          Sign up
+        </Link>
+      </p>
+    </>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 relative bg-[#f4f6fa]">
+      <div className="absolute top-8 left-8 flex items-center gap-2">
+        <div className="text-2xl font-black text-[#5c6cf1]">N</div>
+        <span className="text-xl font-bold text-slate-800 tracking-tight">FinTrack</span>
+      </div>
+
+      <div className="w-full max-w-md">
+        <div className="dashboard-card bg-white p-8 md:p-10 space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700 shadow-xl border border-slate-100 rounded-2xl">
+          <Suspense fallback={<div className="flex justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-[#5c6cf1]" /></div>}>
+            <LoginForm />
+          </Suspense>
+        </div>
+      </div>
+    </div>
+  );
+}
