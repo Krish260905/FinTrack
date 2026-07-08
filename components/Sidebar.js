@@ -51,8 +51,15 @@ export default function Sidebar() {
   return (
     <aside className="w-64 bg-[#f4f6fa] border-r border-[#e2e8f0] flex flex-col hidden md:flex h-full py-6">
       <div className="px-6 mb-8 flex items-center gap-2">
-        <div className="text-2xl font-black text-[#5c6cf1]">N</div>
-        <span className="text-xl font-bold text-slate-800 tracking-tight">FinTrack</span>
+        <div className="relative flex items-center justify-center w-9 h-9 bg-gradient-to-br from-[#5c6cf1] to-[#3642c2] rounded-xl shadow-lg shadow-[#5c6cf1]/40 overflow-hidden">
+          <svg className="w-5 h-5 text-white transform -rotate-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="5" width="20" height="14" rx="2" />
+            <line x1="2" y1="10" x2="22" y2="10" />
+          </svg>
+          <div className="absolute -top-4 -right-4 w-8 h-8 bg-white/20 rounded-full blur-sm" />
+          <div className="absolute -bottom-4 -left-4 w-8 h-8 bg-white/10 rounded-full blur-sm" />
+        </div>
+        <span className="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-slate-800 to-slate-600 tracking-tight ml-1">FinTrack</span>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 space-y-6">
