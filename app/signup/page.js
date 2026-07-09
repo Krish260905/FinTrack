@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -30,6 +31,30 @@ export default function SignupPage() {
       }
 
       router.push('/login?registered=true');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: credentialResponse.credential })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Google authentication failed');
+
+      localStorage.setItem('fintrack_token', data.token);
+      localStorage.setItem('fintrack_user', JSON.stringify(data.user));
+      
+      window.location.href = '/dashboard';
     } catch (err) {
       setError(err.message);
     } finally {
@@ -116,7 +141,30 @@ export default function SignupPage() {
             </button>
           </form>
 
-          <p className="text-center text-sm text-slate-500">
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-200"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-slate-500">Or continue with</span>
+            </div>
+          </div>
+
+          <div className="flex justify-center">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => {
+                setError('Google authentication failed');
+              }}
+              theme="outline"
+              shape="rectangular"
+              size="large"
+              text="signup_with"
+              width="100%"
+            />
+          </div>
+
+          <p className="text-center text-sm text-slate-500 mt-6">
             Already have an account?{' '}
             <Link href="/login" className="text-[#5c6cf1] font-medium hover:underline">
               Log in
