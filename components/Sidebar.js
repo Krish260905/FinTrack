@@ -1,6 +1,7 @@
 "use client";
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, 
   ArrowRightLeft, 
@@ -15,11 +16,43 @@ import {
   HelpCircle,
   HeadphonesIcon,
   LogOut,
-  Gem
+  Gem,
+  Trash2,
+  Loader2
 } from 'lucide-react';
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [user, setUser] = useState(null);
+  const [clearing, setClearing] = useState(false);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('fintrack_user');
+    if (storedUser) {
+        setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const handleClearDummyData = async () => {
+      setClearing(true);
+      try {
+          const token = localStorage.getItem('fintrack_token');
+          const res = await fetch('/api/users/dummy-data', {
+              method: 'DELETE',
+              headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+              const data = await res.json();
+              localStorage.setItem('fintrack_user', JSON.stringify(data.user));
+              setUser(data.user);
+              window.location.reload();
+          }
+      } catch (err) {
+          console.error(err);
+      } finally {
+          setClearing(false);
+      }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('fintrack_token');
@@ -89,6 +122,16 @@ export default function Sidebar() {
       </div>
 
       <div className="p-4 mt-auto">
+        {user?.has_dummy_data && (
+            <button 
+                onClick={handleClearDummyData}
+                disabled={clearing}
+                className="w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-lg text-sm font-medium text-orange-600 bg-orange-50 hover:bg-orange-100 transition-colors"
+            >
+                {clearing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
+                Clear Dummy Data
+            </button>
+        )}
         <Link href="/settings" className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${pathname === '/settings' ? 'bg-[#5c6cf1] text-white shadow-md shadow-[#5c6cf1]/20' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'}`}>
           <Settings className="w-5 h-5" />
           Settings
