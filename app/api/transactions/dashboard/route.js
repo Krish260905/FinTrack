@@ -107,19 +107,13 @@ export async function GET(req) {
             ];
         }
 
-        // 8. Subscriptions (Filtered by timeframe)
-        let subDateFilter = '';
-        if (timeframe === 'yearly') {
-            subDateFilter = `AND extract(year from next_date) = $2`;
-        } else {
-            subDateFilter = `AND extract(year from next_date) = $2 AND extract(month from next_date) = $3`;
-        }
-
+        // 8. Subscriptions (Upcoming)
         const subResult = await pool.query(`
             SELECT * FROM tblsubscription 
-            WHERE user_id = $1 ${subDateFilter} 
+            WHERE user_id = $1 AND next_date >= CURRENT_DATE
             ORDER BY next_date ASC
-        `, queryParams);
+            LIMIT 5
+        `, [userId]);
 
         return NextResponse.json({
             accountBalance: totalBalance,
