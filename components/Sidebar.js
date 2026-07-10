@@ -18,10 +18,11 @@ import {
   LogOut,
   Gem,
   Trash2,
-  Loader2
+  Loader2,
+  X
 } from 'lucide-react';
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, setIsOpen }) {
   const pathname = usePathname();
   const [user, setUser] = useState(null);
   const [clearing, setClearing] = useState(false);
@@ -82,62 +83,91 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="w-64 bg-[#f4f6fa] border-r border-[#e2e8f0] flex flex-col hidden md:flex h-full py-6">
-      <div className="px-6 mb-8 flex items-center gap-2">
-        <div className="relative flex items-center justify-center w-9 h-9 bg-gradient-to-br from-[#5c6cf1] to-[#3642c2] rounded-xl shadow-lg shadow-[#5c6cf1]/40 overflow-hidden">
-          <svg className="w-5 h-5 text-white transform -rotate-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="2" y="5" width="20" height="14" rx="2" />
-            <line x1="2" y1="10" x2="22" y2="10" />
-          </svg>
-          <div className="absolute -top-4 -right-4 w-8 h-8 bg-white/20 rounded-full blur-sm" />
-          <div className="absolute -bottom-4 -left-4 w-8 h-8 bg-white/10 rounded-full blur-sm" />
-        </div>
-        <span className="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-slate-800 to-slate-600 tracking-tight ml-1">FinTrack</span>
-      </div>
+    <>
+      {/* Mobile Backdrop */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm md:hidden transition-opacity"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
 
-      <div className="flex-1 overflow-y-auto px-4 space-y-6">
-        {navGroups.map((group, idx) => (
-          <div key={idx}>
-            <p className="px-4 text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">
-              {group.title}
-            </p>
-            <nav className="space-y-1">
-              {group.items.map((item) => {
-                const isActive = pathname === item.href;
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={isActive ? "sidebar-link-active" : "sidebar-link"}
-                  >
-                    <Icon className="w-5 h-5" />
-                    {item.name}
-                  </Link>
-                );
-              })}
-            </nav>
+      {/* Sidebar Container */}
+      <aside className={`
+        fixed md:static inset-y-0 left-0 z-50 w-64 bg-[#f4f6fa] border-r border-[#e2e8f0] 
+        flex flex-col h-full py-6 transition-transform duration-300 ease-in-out
+        ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `}>
+        <div className="px-6 mb-8 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="relative flex items-center justify-center w-9 h-9 bg-gradient-to-br from-[#5c6cf1] to-[#3642c2] rounded-xl shadow-lg shadow-[#5c6cf1]/40 overflow-hidden">
+              <svg className="w-5 h-5 text-white transform -rotate-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="5" width="20" height="14" rx="2" />
+                <line x1="2" y1="10" x2="22" y2="10" />
+              </svg>
+              <div className="absolute -top-4 -right-4 w-8 h-8 bg-white/20 rounded-full blur-sm" />
+              <div className="absolute -bottom-4 -left-4 w-8 h-8 bg-white/10 rounded-full blur-sm" />
+            </div>
+            <span className="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-slate-800 to-slate-600 tracking-tight ml-1">FinTrack</span>
           </div>
-        ))}
-      </div>
+          
+          {/* Mobile Close Button */}
+          <button 
+            onClick={() => setIsOpen(false)}
+            className="md:hidden p-2 -mr-3 text-slate-500 hover:bg-slate-200 rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
-      <div className="p-4 mt-auto">
-        {user?.has_dummy_data && (
-            <button 
-                onClick={handleClearDummyData}
-                disabled={clearing}
-                className="w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-lg text-sm font-medium text-orange-600 bg-orange-50 hover:bg-orange-100 transition-colors"
-            >
-                {clearing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
-                Clear Dummy Data
-            </button>
-        )}
-        <Link href="/settings" className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${pathname === '/settings' ? 'bg-[#5c6cf1] text-white shadow-md shadow-[#5c6cf1]/20' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'}`}>
-          <Settings className="w-5 h-5" />
-          Settings
-        </Link>
-      </div>
+        <div className="flex-1 overflow-y-auto px-4 space-y-6">
+          {navGroups.map((group, idx) => (
+            <div key={idx}>
+              <p className="px-4 text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">
+                {group.title}
+              </p>
+              <nav className="space-y-1">
+                {group.items.map((item) => {
+                  const isActive = pathname === item.href;
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      onClick={() => setIsOpen && setIsOpen(false)}
+                      className={isActive ? "sidebar-link-active" : "sidebar-link"}
+                    >
+                      <Icon className="w-5 h-5" />
+                      {item.name}
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+          ))}
+        </div>
 
-    </aside>
+        <div className="p-4 mt-auto">
+          {user?.has_dummy_data && (
+              <button 
+                  onClick={handleClearDummyData}
+                  disabled={clearing}
+                  className="w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-lg text-sm font-medium text-orange-600 bg-orange-50 hover:bg-orange-100 transition-colors"
+              >
+                  {clearing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
+                  Clear Dummy Data
+              </button>
+          )}
+          <Link 
+            href="/settings" 
+            onClick={() => setIsOpen && setIsOpen(false)}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${pathname === '/settings' ? 'bg-[#5c6cf1] text-white shadow-md shadow-[#5c6cf1]/20' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'}`}
+          >
+            <Settings className="w-5 h-5" />
+            Settings
+          </Link>
+        </div>
+      </aside>
+    </>
   );
 }
